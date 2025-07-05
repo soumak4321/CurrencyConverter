@@ -10,13 +10,13 @@ async function loadCurrencies() {
   const res = await fetch(API_URL);
   const data = await res.json();
   const currencies = Object.keys(data.rates);
-  
+
   currencies.forEach(currency => {
     const option1 = document.createElement('option');
     option1.value = currency;
     option1.textContent = currency;
     fromCurrency.appendChild(option1);
-    
+
     const option2 = document.createElement('option');
     option2.value = currency;
     option2.textContent = currency;
@@ -39,12 +39,22 @@ form.addEventListener('submit', async (e) => {
     return;
   }
 
-  const res = await fetch(`${API_URL}?base=${from}&symbols=${to}`);
-  const data = await res.json();
-  const rate = data.rates[to];
+  try {
+    const res = await fetch(`${API_URL}?base=${from}&symbols=${to}`);
+    const data = await res.json();
 
-  const converted = (amount * rate).toFixed(2);
-  resultDiv.textContent = `${amount} ${from} = ${converted} ${to}`;
+    if (!data.rates || !data.rates[to]) {
+      resultDiv.textContent = "Conversion rate not available.";
+      return;
+    }
+
+    const rate = data.rates[to];
+    const converted = (amount * rate).toFixed(2);
+    resultDiv.textContent = `${amount} ${from} = ${converted} ${to}`;
+  } catch (error) {
+    resultDiv.textContent = "Error fetching data.";
+    console.error(error);
+  }
 });
 
 loadCurrencies();
